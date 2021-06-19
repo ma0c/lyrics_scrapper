@@ -3,7 +3,9 @@ import scrapy
 class MusicaCom(scrapy.Spider):
     name = "musica.com"
 
-    start_urls = ['https://www.musica.com/letras.asp?letras=4324']
+    def start_requests(self):
+        url = 'https://www.musica.com/letras.asp?letras={}'.format(self.artist_id)
+        yield scrapy.Request(url, self.parse)
 
     def parse(self, response, **kwargs):
         yield from response.follow_all(css='.listado-letras li a', callback=self.extract_songs)
