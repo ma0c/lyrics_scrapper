@@ -3,16 +3,13 @@ import scrapy
 class MusicaCom(scrapy.Spider):
     name = "musica.com"
 
-    def start_requests(self):
-        urls = [
-            'https://www.musica.com/letras.asp?letras=4324'
-        ]
-        for url in urls:
-            yield scrapy.Request(url, self.parse)
+    start_urls = ['https://www.musica.com/letras.asp?letras=4324']
 
-    def parse(self, response):
-        for song in response.css('.listado-letras li'):
-            yield {
-                'href': song.css('a::attr(href)').get(),
-                'text': song.css('.info-letra::text').get()
-            }
+    def parse(self, response, **kwargs):
+        yield from response.follow_all(css='.listado-letras li a', callback=self.extract_songs)
+
+    def extract_songs(self, response):
+        yield {
+            'title': response.css('h1::text').get(),
+            'lyrics': '\n'.join(p.get() for p in response.css('#letra p::text'))
+        }
